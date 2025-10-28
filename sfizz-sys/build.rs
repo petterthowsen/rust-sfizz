@@ -60,6 +60,7 @@ fn build_vendored(vendor_dir: &Path) -> anyhow::Result<()> {
     config.define("SFIZZ_DOCS", "OFF");
     config.define("SFIZZ_RENDER", "OFF");
     config.define("CMAKE_CXX_STANDARD", "17");
+    config.build_target("sfizz_static");
 
     let install_root = config.build();
     let install_lib = install_root.join("lib");
