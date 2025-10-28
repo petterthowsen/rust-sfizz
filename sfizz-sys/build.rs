@@ -55,17 +55,25 @@ fn build_vendored(vendor_dir: &Path) -> anyhow::Result<()> {
     config.define("SFIZZ_SHARED", "OFF");
     config.define("SFIZZ_DOCS", "OFF");
     config.define("SFIZZ_RENDER", "OFF");
+    config.define("CMAKE_CXX_STANDARD", "17");
+    config.build_target("sfizz_static");
 
-    let build = config.build();
-    let lib_dir = build.join("lib");
-    println!("cargo:rustc-link-search=native={}", lib_dir.display());
+    let install_root = config.build();
+    let install_lib = install_root.join("lib");
+    if install_lib.exists() {
+        println!("cargo:rustc-link-search=native={}", install_lib.display());
+    }
+    let build_lib = install_root.join("build").join("library").join("lib");
+    if build_lib.exists() {
+        println!("cargo:rustc-link-search=native={}", build_lib.display());
+    }
     println!("cargo:rustc-link-lib=static=sfizz");
 
     Ok(())
 }
 
 fn generate_bindings(vendor_dir: &Path) -> anyhow::Result<()> {
-    let fallback_include = vendor_dir.join("src").join("sfizz");
+    let fallback_include = vendor_dir.join("src");
     let header_root = env::var_os("SFIZZ_SYS_INC_DIR")
         .map(PathBuf::from)
         .unwrap_or_else(|| fallback_include.clone());
@@ -83,7 +91,7 @@ fn generate_bindings(vendor_dir: &Path) -> anyhow::Result<()> {
         .allowlist_function("sfizz_.*")
         .allowlist_type("sfizz_.*")
         .allowlist_var("SFIZZ_.*")
-        .parse_callbacks(Box::new(bindgen::CargoCallbacks));
+        .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()));
 
     if fallback_include != header_root {
         builder = builder.clang_arg(format!("-I{}", fallback_include.display()));

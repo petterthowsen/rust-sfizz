@@ -1,10 +1,10 @@
 Summary
-- Workspace root configured with shared metadata and README.
-- Raw FFI crate added with build script driving CMake/bindgen and optional system linking.
-- Safe wrapper crate exposing RAII `Synth` API and re-exported raw bindings.
-- Minimal example binary plus placeholders for future integration tests and bindings notes.
-- Upstream C++ sources cloned into `vendor/sfizz/` for local builds.
+- Workspace root configured with shared metadata, README, and git submodule for `vendor/sfizz/`.
+- Raw FFI crate builds the native library via CMake (static target) and runs bindgen with configurable features.
+- Safe wrapper crate exposes an RAII `Synth` API while re-exporting raw bindings for advanced use.
+- Minimal example binary plus placeholders for future integration tests and bindings artifacts.
+- `cargo build -p sfizz` succeeds (after native toolchain install) and links against the vendored static library.
 
 Next Steps
-- Install native build prerequisites and run `cargo build -p sfizz`.
-- Optionally convert `vendor/sfizz` to a git submodule and expand wrapper/tests once builds succeed.
+- Flesh out the safe wrapper surface and add integration tests that exercise loading/playing SFZ.
+- Consider feature flags for optional components (e.g. enabling audiofile dependencies, shared library builds).
