@@ -55,7 +55,7 @@ fn build_vendored(vendor_dir: &Path) -> anyhow::Result<()> {
     config.define("SFIZZ_JACK", "OFF");
     config.define("SFIZZ_AUDIOFILES", "ON");
     config.define("SFIZZ_USE_SNDFILE", "ON");
-    config.define("SFIZZ_SNDFILE_STATIC", "ON");
+    config.define("SFIZZ_SNDFILE_STATIC", "OFF");
     config.define("SFIZZ_SHARED", "OFF");
     config.define("SFIZZ_DOCS", "OFF");
     config.define("SFIZZ_RENDER", "OFF");
@@ -95,6 +95,8 @@ fn build_vendored(vendor_dir: &Path) -> anyhow::Result<()> {
 
     #[cfg(target_family = "unix")]
     println!("cargo:rustc-link-arg=-Wl,--end-group");
+
+    println!("cargo:rustc-link-lib=dylib=sndfile");
 
     Ok(())
 }
