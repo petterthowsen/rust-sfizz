@@ -2,7 +2,7 @@
 
 use sfizz_sys::bindings;
 use std::convert::TryFrom;
-use std::ffi::{CString, NulError};
+use std::ffi::{CStr, CString, NulError};
 use std::path::Path;
 use std::ptr::NonNull;
 
@@ -35,6 +35,13 @@ pub enum Error {
 /// Managed wrapper around `sfizz_synth_t`.
 pub struct Synth {
     raw: NonNull<bindings::sfizz_synth_t>,
+}
+
+/// Describes a labeled MIDI CC exposed by the current SFZ instrument.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CcLabel {
+    pub cc_number: u8,
+    pub name: String,
 }
 
 impl Synth {
@@ -135,6 +142,39 @@ impl Synth {
     /// Access the raw pointer for advanced integrations.
     pub fn as_raw(&self) -> *mut bindings::sfizz_synth_t {
         self.raw.as_ptr()
+    }
+
+    /// Enumerate the labeled MIDI CCs declared in the currently loaded SFZ.
+    pub fn cc_labels(&self) -> Vec<CcLabel> {
+        let count = unsafe { bindings::sfizz_get_num_cc_labels(self.raw.as_ptr()) } as usize;
+        let mut labels = Vec::with_capacity(count);
+
+        for index in 0..count {
+            let number =
+                unsafe { bindings::sfizz_get_cc_label_number(self.raw.as_ptr(), index as i32) };
+            if number == bindings::SFIZZ_OUT_OF_BOUNDS_LABEL_INDEX {
+                continue;
+            }
+
+            let text_ptr =
+                unsafe { bindings::sfizz_get_cc_label_text(self.raw.as_ptr(), index as i32) };
+            if text_ptr.is_null() {
+                continue;
+            }
+
+            let name = unsafe { CStr::from_ptr(text_ptr) }
+                .to_string_lossy()
+                .into_owned();
+
+            let cc_number = match u8::try_from(number) {
+                Ok(value) => value,
+                Err(_) => continue,
+            };
+
+            labels.push(CcLabel { cc_number, name });
+        }
+
+        labels
     }
 }
 
