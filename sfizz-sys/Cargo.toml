@@ -1,0 +1,23 @@
+[package]
+name = "sfizz-sys"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Low-level FFI bindings to the sfizz SFZ synthesizer."
+authors.workspace = true
+links = "sfizz"
+
+[features]
+default = ["vendored"]
+vendored = []
+system = []
+
+[dependencies]
+libc = "0.2"
+
+[build-dependencies]
+anyhow = "1"
+bindgen = { version = "0.69", default-features = false, features = ["runtime"] }
+cmake = "0.1"
+pkg-config = "0.3"

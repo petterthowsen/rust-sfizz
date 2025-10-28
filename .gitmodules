@@ -1,0 +1,3 @@
+[submodule "vendor/sfizz"]
+	path = vendor/sfizz
+	url = https://github.com/sfztools/sfizz.git

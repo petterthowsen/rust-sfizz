@@ -1,0 +1,13 @@
+[workspace]
+members = [
+    "sfizz-sys",
+    "sfizz"
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/yourname/sfizz-rust"
+description = "Rust workspace providing bindings and wrappers for the sfizz SFZ synthesizer"
+authors = ["Your Name <you@example.com>"]
