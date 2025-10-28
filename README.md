@@ -39,6 +39,14 @@ git submodule update --init --recursive
 cargo build -p sfizz
 ```
 
+### Tests
+
+Integration tests expect an SFZ fixture under `fixtures/sfz/SCC Taiko Drums`. You can, for example, copy the `SCC Taiko Drums` folder from your sample library into that location, then run:
+
+```sh
+cargo test -p sfizz
+```
+
 ## Development Notes
 
 - `sfizz-sys/build.rs` drives the native build (CMake) and runs bindgen; edit it as upstream changes.

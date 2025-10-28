@@ -1,4 +1,5 @@
 use std::env;
+use std::fs;
 use std::path::{Path, PathBuf};
 
 fn main() {
@@ -24,6 +25,7 @@ fn try_main() -> anyhow::Result<()> {
         build_vendored(&vendor_dir)?;
     }
 
+    link_platform_libraries();
     generate_bindings(&vendor_dir)?;
 
     Ok(())
@@ -56,7 +58,6 @@ fn build_vendored(vendor_dir: &Path) -> anyhow::Result<()> {
     config.define("SFIZZ_DOCS", "OFF");
     config.define("SFIZZ_RENDER", "OFF");
     config.define("CMAKE_CXX_STANDARD", "17");
-    config.build_target("sfizz_static");
 
     let install_root = config.build();
     let install_lib = install_root.join("lib");
@@ -67,7 +68,30 @@ fn build_vendored(vendor_dir: &Path) -> anyhow::Result<()> {
     if build_lib.exists() {
         println!("cargo:rustc-link-search=native={}", build_lib.display());
     }
-    println!("cargo:rustc-link-lib=static=sfizz");
+    let mut static_libs = Vec::new();
+    if let Ok(entries) = fs::read_dir(&build_lib) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.extension().and_then(|ext| ext.to_str()) == Some("a") {
+                if let Some(file_name) = path.file_name().and_then(|name| name.to_str()) {
+                    if let Some(stripped) = file_name.strip_prefix("lib").and_then(|s| s.strip_suffix(".a")) {
+                        static_libs.push(stripped.to_string());
+                    }
+                }
+            }
+        }
+    }
+    static_libs.sort();
+
+    #[cfg(target_family = "unix")]
+    println!("cargo:rustc-link-arg=-Wl,--start-group");
+
+    for lib in &static_libs {
+        println!("cargo:rustc-link-lib=static={}", lib);
+    }
+
+    #[cfg(target_family = "unix")]
+    println!("cargo:rustc-link-arg=-Wl,--end-group");
 
     Ok(())
 }
@@ -102,4 +126,25 @@ fn generate_bindings(vendor_dir: &Path) -> anyhow::Result<()> {
     bindings.write_to_file(&out_path)?;
 
     Ok(())
+}
+
+fn link_platform_libraries() {
+    #[cfg(target_os = "macos")]
+    println!("cargo:rustc-link-lib=dylib=c++");
+
+    #[cfg(target_os = "linux")]
+    {
+        println!("cargo:rustc-link-lib=dylib=stdc++");
+        println!("cargo:rustc-link-lib=dylib=pthread");
+        println!("cargo:rustc-link-lib=dylib=m");
+    }
+
+    #[cfg(target_os = "freebsd")]
+    println!("cargo:rustc-link-lib=dylib=c++");
+
+    #[cfg(all(
+        target_family = "unix",
+        not(any(target_os = "macos", target_os = "linux", target_os = "freebsd"))
+    ))]
+    println!("cargo:rustc-link-lib=dylib=c++");
 }

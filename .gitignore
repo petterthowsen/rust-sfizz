@@ -2,3 +2,6 @@ target/
 **/*.rs.bk
 Cargo.lock
 bindings/
+fixtures/**
+!fixtures/
+!fixtures/README.md
