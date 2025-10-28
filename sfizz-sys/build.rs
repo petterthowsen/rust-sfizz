@@ -53,7 +53,7 @@ fn build_vendored(vendor_dir: &Path) -> anyhow::Result<()> {
     config.profile("Release");
     config.define("BUILD_TESTING", "OFF");
     config.define("SFIZZ_JACK", "OFF");
-    config.define("SFIZZ_AUDIOFILES", "OFF");
+    config.define("SFIZZ_AUDIOFILES", "ON");
     config.define("SFIZZ_SHARED", "OFF");
     config.define("SFIZZ_DOCS", "OFF");
     config.define("SFIZZ_RENDER", "OFF");
